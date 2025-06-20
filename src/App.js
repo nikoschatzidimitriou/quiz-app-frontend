@@ -96,7 +96,7 @@ function App() {
   const handleUpload = async () => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await axios.post('http://localhost:8888/upload', formData, {
+    const response = await axios.post('https://quiz-backend-ow1w.onrender.com//upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     setQuestions(response.data.questions);
