@@ -10,80 +10,93 @@ function App() {
   const [currentStep, setCurrentStep] = useState(0);
   const [score, setScore] = useState(0);
   const [userAnswers, setUserAnswers] = useState([]);
-  const [timeLeft, setTimeLeft] = useState(0);
+  const [timeLeft, setTimeLeft] = useState(0); // in seconds
   const timerRef = useRef(null);
 
-  const styles = {
-    container: {
-      padding: '40px',
-      fontFamily: 'Arial, sans-serif',
-      backgroundColor: '#f0f4f8',
-      minHeight: '100vh',
-    },
-    title: {
-      fontSize: '2.5rem',
-      color: '#333',
-      marginBottom: '20px',
-    },
-    input: {
-      padding: '8px',
-      fontSize: '1rem',
-      borderRadius: '4px',
-      border: '1px solid #ccc',
-      margin: '0 8px',
-    },
-    button: {
-      padding: '12px 20px',
-      backgroundColor: '#007bff',
-      color: '#fff',
-      border: 'none',
-      borderRadius: '4px',
-      cursor: 'pointer',
-      fontSize: '1rem',
-      margin: '0 8px',
-    },
-    question: {
-      fontSize: '1.75rem',
-      margin: '25px 0 15px',
-      color: '#222',
-    },
-    optionButton: {
-      padding: '12px',
-      textAlign: 'left',
-      border: '1px solid #ccc',
-      borderRadius: '4px',
-      background: '#fff',
-      fontSize: '1rem',
-      cursor: 'pointer',
-      width: '100%',
-      marginBottom: '10px',
-    },
-    time: {
-      fontSize: '1.2rem',
-      fontWeight: 'bold',
-      marginBottom: '20px',
-      color: '#d9534f',
-    },
-    reviewCard: {
-      marginBottom: '20px',
-      padding: '20px',
-      border: '1px solid #ddd',
-      borderRadius: '8px',
-      background: '#fff',
-    },
-    reviewQuestion: {
-      fontWeight: 'bold',
-      fontSize: '1.25rem',
-      marginBottom: '12px',
-    },
+  const containerStyle = {
+    maxWidth: '600px',
+    margin: '30px auto',
+    fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+    padding: '20px',
+    backgroundColor: '#f9fafb',
+    borderRadius: '8px',
+    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
   };
 
-  const handleFileChange = (e) => setFile(e.target.files[0]);
+  const titleStyle = {
+    fontSize: '2.5rem',
+    fontWeight: '700',
+    marginBottom: '20px',
+    color: '#333',
+    textAlign: 'center',
+  };
+
+  const buttonStyle = {
+    backgroundColor: '#2563eb',
+    color: '#fff',
+    padding: '12px 24px',
+    border: 'none',
+    borderRadius: '6px',
+    fontSize: '1rem',
+    cursor: 'pointer',
+    marginTop: '15px',
+  };
+
+  const inputStyle = {
+    width: '100%',
+    padding: '10px',
+    fontSize: '1rem',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    marginTop: '10px',
+  };
+
+  const questionStyle = {
+    fontSize: '1.5rem',
+    fontWeight: '600',
+    marginBottom: '20px',
+  };
+
+  const optionButtonStyle = {
+    display: 'block',
+    width: '100%',
+    padding: '12px',
+    fontSize: '1rem',
+    marginBottom: '12px',
+    borderRadius: '6px',
+    border: '1px solid #ccc',
+    backgroundColor: '#fff',
+    cursor: 'pointer',
+    textAlign: 'left',
+  };
+
+  const reviewQuestionStyle = {
+    fontWeight: '700',
+    fontSize: '1.25rem',
+    marginBottom: '10px',
+  };
+
+  const listItemStyle = (selected, correct) => ({
+    backgroundColor: correct
+      ? '#d1fae5' // light green
+      : selected
+      ? '#fee2e2' // light red
+      : 'transparent',
+    padding: '8px',
+    borderRadius: '6px',
+    marginBottom: '8px',
+    textDecoration: selected ? 'underline' : 'none',
+    color: correct ? '#065f46' : selected ? '#991b1b' : '#000',
+  });
+
+  const handleFileChange = (e) => {
+    setFile(e.target.files[0]);
+  };
 
   const handleUpload = async () => {
     const formData = new FormData();
     formData.append('file', file);
-    const response = await axios.post('https://quiz-backend-ow1w.onrender.com//upload', formData, {
+    const response = await axios.post('http://localhost:8888/upload', formData, {
       headers: { 'Content-Type': 'multipart/form-data' }
     });
     setQuestions(response.data.questions);
@@ -103,7 +116,7 @@ function App() {
         setTimeLeft(prev => {
           if (prev <= 1) {
             clearInterval(timerRef.current);
-            setCurrentStep(shuffled.slice(0, quizSize).length);
+            setCurrentStep(shuffled.slice(0, quizSize).length); // end quiz
             return 0;
           }
           return prev - 1;
@@ -127,24 +140,22 @@ function App() {
   };
 
   return (
-    <div style={styles.container}>
-      <h1 style={styles.title}>Quiz App</h1>
+    <div style={containerStyle}>
+      <h1 style={titleStyle}>Quiz App</h1>
 
-      {/* Upload Stage */}
       {questions.length === 0 && (
         <div>
           <input
             type="file"
             onChange={handleFileChange}
-            style={styles.input}
+            style={inputStyle}
           />
-          <button onClick={handleUpload} style={styles.button}>
+          <button onClick={handleUpload} style={buttonStyle}>
             Upload Document
           </button>
         </div>
       )}
 
-      {/* Quiz Setup Stage */}
       {questions.length > 0 && currentQuiz.length === 0 && (
         <div style={{ marginTop: '20px' }}>
           <p style={{ fontSize: '1.1rem' }}>{questions.length} questions loaded.</p>
@@ -155,7 +166,7 @@ function App() {
             min="1"
             max={questions.length}
             onChange={e => setQuizSize(Number(e.target.value))}
-            style={styles.input}
+            style={inputStyle}
           />
           <label>Time limit (min):</label>
           <input
@@ -163,27 +174,31 @@ function App() {
             value={timeLimit}
             min="0"
             onChange={e => setTimeLimit(Number(e.target.value))}
-            style={styles.input}
+            style={inputStyle}
           />
-          <button onClick={startQuiz} style={styles.button}>
+          <button onClick={startQuiz} style={buttonStyle}>
             Start Quiz
           </button>
         </div>
       )}
 
-      {/* Quiz In-Progress Stage */}
       {currentQuiz.length > 0 && currentStep < currentQuiz.length && (
         <div style={{ marginTop: '30px' }}>
           {timeLimit > 0 && (
-            <div style={styles.time}>Time Left: {formatTime(timeLeft)}</div>
+            <div style={{ fontSize: '1.2rem', fontWeight: 'bold', marginBottom: '20px', color: '#d9534f' }}>
+              Time Left: {formatTime(timeLeft)}
+            </div>
           )}
-          <div style={styles.question}>{currentQuiz[currentStep].question}</div>
+          {/* Question counter */}
+          <p>Question {currentStep + 1} of {currentQuiz.length}</p>
+
+          <div style={questionStyle}>{currentQuiz[currentStep].question}</div>
           <div>
             {currentQuiz[currentStep].options.map((opt, idx) => (
               <button
                 key={idx}
                 onClick={() => handleAnswer(opt)}
-                style={styles.optionButton}
+                style={optionButtonStyle}
               >
                 {opt.text}
               </button>
@@ -192,7 +207,6 @@ function App() {
         </div>
       )}
 
-      {/* Review Stage */}
       {currentQuiz.length > 0 && currentStep === currentQuiz.length && (
         <div style={{ marginTop: '30px' }}>
           <h2 style={{ fontSize: '2rem', marginBottom: '10px' }}>Quiz Complete!</h2>
@@ -201,17 +215,15 @@ function App() {
           {currentQuiz.map((q, qi) => {
             const userAnswer = userAnswers[qi];
             return (
-              <div key={qi} style={styles.reviewCard}>
-                <div style={styles.reviewQuestion}>{q.question}</div>
+              <div key={qi} style={{ marginBottom: '20px', padding: '15px', border: '1px solid #ccc', borderRadius: '8px', backgroundColor: '#fff' }}>
+                <div style={reviewQuestionStyle}>{q.question}</div>
                 <ul style={{ paddingLeft: '20px' }}>
                   {q.options.map((opt, oi) => {
                     const selected = userAnswer && userAnswer.text === opt.text;
                     const correct = opt.is_correct;
                     return (
-                      <li key={oi} style={{ marginBottom: '5px', fontSize: '1rem' }}>
-                        <span style={selected ? { textDecoration: 'underline' } : {}}>{opt.text}</span>
-                        {correct && <span style={{ color: '#28a745', marginLeft: '10px' }}>✔️</span>}
-                        {selected && !correct && <span style={{ color: '#dc3545', marginLeft: '10px' }}>✖️</span>}
+                      <li key={oi} style={listItemStyle(selected, correct)}>
+                        {opt.text}
                       </li>
                     );
                   })}
@@ -219,7 +231,7 @@ function App() {
               </div>
             );
           })}
-          <button onClick={() => window.location.reload()} style={styles.button}>
+          <button onClick={() => window.location.reload()} style={buttonStyle}>
             Restart
           </button>
         </div>
